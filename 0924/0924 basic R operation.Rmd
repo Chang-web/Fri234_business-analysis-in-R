@@ -1,0 +1,210 @@
+---
+title: "0924 basic R operation"
+author: "Chang"
+date: "2021/9/25"
+output: html_document
+---
+### vector
+```{r}
+a <- c(1,3,5,7,9)
+a
+b <- 10:20 # :to
+b
+```
+
+### sort, order, rank
+```{r}
+x <- c(29, 33, 10, 82, 46)
+rbind(x,
+      # sort:由小到大排列
+      sort = sort(x),  
+      # order:數字表示"原向量元素的位置"
+      order = order(x), 
+      # rank:顯示原向量元素的"排序"
+      rank = rank(x))   
+
+```
+
+### [ ]:index certain element
+```{r}
+a[c(2:4)]
+b[5]
+# str;class:data type
+str(a)
+class(a)
+# check data type
+is.numeric(a)
+is.character(a)
+# replace
+a[4] <- 2*a[5]
+a
+
+x <- seq(1,10,2)
+x
+length(x)
+x[-c(2,5)]
+x[3:length(x)] # from the third to the last
+x[1] + x[2]*x[3] #先乘除後加減
+x[5]/x[3]
+x[5]%/%x[3] #沒有小數點
+x[5]%%x[3] #取餘數
+# which:position of elements
+which(x>=3)
+x[which(x>=3)] #x[x>=3]
+x[x > 4 & x <= 7 ] # and
+x[x > 4 | x <= 7 ] # or
+# check if elements are in the vector
+c(2,3) %in% x
+#basic statistics
+c(sum(x), mean(x), sd(x), var(x))
+```
+
+### read a sentence
+```{r}
+# \:區別引號和句中'的差別，""則不需要
+m <- 'I\'m a student.'  #"I'm a student."
+m
+#句中的詞語加上引號，\失效，使用writelines()
+n <- "I\'m \"a\" student."
+n
+writeLines(n)
+```
+
+### character vector
+```{r}
+d <- c("a", "b", "c", "b", "d")
+d == "b" # ==:exact is ...
+d[d == "b"] # extract "b" in vector d
+d[d != "b"] # != :not
+kk <- d == "b"
+d[kk == TRUE]
+length(d)
+unique(d)
+```
+
+### matrix and array
+```{r}
+# fill in matrix:default is by column
+M <- matrix(c('a','b','c','d','e','f'), nrow = 2, ncol = 3)
+M
+MM <- matrix(c('a','b','c','d','e','f'), nrow = 2, ncol = 3, byrow = T)
+MM
+# zero matrix
+S <- matrix(0,3,4)
+S
+# array:multi-dimension
+e <- array(c('r', 'g', 'b'), dim = c(4,3,2))
+e
+
+# matrix properties
+A <- matrix(c(1,2,3,4), nrow = 2, ncol = 2)
+A
+t(A) # transpose
+solve(A) # invese of matrix
+sum(diag(A)) # martix trace of A
+
+#find solution
+b <- c(1,1)
+solve(A, b)
+solve(A) %*% b
+
+B <- matrix(c(1,1,2,2), nrow = 2, ncol = 2)
+B # no inverse due to singularity
+# matrix manipulation
+A*B #矩陣元素相乘
+A %*% B #矩陣相乘
+```
+
+### lists
+```{r}
+L <- list(vec = c(1,2,3),
+          num = 5,
+          func = mean, 
+          word = "student")
+L
+names(L)
+L[[4]]  # L$word
+```
+
+### Factor
+```{r}
+cities <- c("Taipei", "Taichung", "Taipei","Taoyuan","Taipei", "Tainan")
+str(cities)
+factor_cities <- factor(cities)
+factor_cities
+nlevels(factor_cities)
+# Add missing level
+factor_allcities <- factor(cities, levels = c("Taipei","NewTaipei ", "Taoyuan", "Taichung","Tainan", "Kaohsiung"))
+factor_allcities
+
+# labels: abbreviate names
+factor(cities, levels = c("Taipei","NewTaipei ", "Taoyuan", "Taichung","Tainan", "Kaohsiung"), labels = c("TP", "NT", "TY", "TC", "TN", "KS"))
+
+```
+### Data Frames
+```{r}
+# build dataframes
+# method1:
+name <- c("John", "Cindy", "Rody", "Ben", "Ariel")
+age <- c("24", "11", "35", "42", "17")
+gender <- c("M", "F", "F", "M", "F")
+data <- data.frame(name, age, gender)
+data
+# method2:
+data2 <- data.frame(
+  name = c("John", "Cindy", "Rody", "Ben", "Ariel"),
+  age = c("24", "11", "35", "42", "17"),
+  gender = c("M", "F", "F", "M", "F")
+)
+data2
+#head() & tail():default is six rows
+head(data2, 3) # show first three rows
+tail(data, 3) # show last three rows
+class(data2)
+names(data2)
+dim(data2) # how many rows and columns
+# 5-number summary and mean
+summary(data2)
+str(data2)
+#change column's data type
+data2$age <- as.numeric(data2$age)
+summary(data2)
+```
+
+### missing values
+```{r}
+data3 <- data.frame(
+  name = c(NA, "Cindy", "Rody", "Ben", "Ariel"),
+  age = c("24", "11", NA, "42", "17"),
+  gender = c("M", "F", "F", "M", "F")
+)
+# check missing value
+is.na(data3)
+# which is NA
+which(is.na(data3)) 
+# how many NA
+sum(is.na(data3))
+# list columns of data that have missing values
+data3[,!complete.cases(data3)]
+# list rows of data that have missing values
+data3[!complete.cases(data3), ]
+data3$age <- as.numeric(data3$age)
+mean(data3$age) #no result due to NA
+mean(data3$age, na.rm = T)
+# replace NA
+data3[is.na(data3)] <- "none"
+data3
+# change to NA
+data3[data3 == "F"] <- NA
+data3
+```
+
+
+
+
+
+
+
+
+
+

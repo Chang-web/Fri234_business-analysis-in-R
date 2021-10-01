@@ -1,0 +1,131 @@
+---
+title: "In_class_exercise"
+author: "reference: teacher's handout"
+date: "2021/9/30"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(magrittr)
+```
+
+### Exercise 1
+```{r}
+library(readr)
+covid <- read_csv("D:/Chang-web/owid-covid-data.csv")
+```
+
+#### 1.filter出 Taiwan, Japan, United States，留下這些變數date, location, new_cases, new_deaths，並將這些變數重新命名。
+```{r}
+
+covid3 <-  covid %>% 
+ filter( location %in% c("Taiwan","United States","Japan"))%>%
+ select( Date = date, Country = location, Cases = new_cases, Death = new_deaths )  # change var name
+# can also 
+#covid %>% 
+#  filter( location =="Taiwan"| location == "United States"| #location =="Japan" ) %>%
+#  select( Date = date, Country = location, Cases = new_cases, Death = new_deaths )  
+head(covid3)
+
+covid3$Date %<>% as.Date() # 設定為時間的格式
+ggplot(covid3,aes(x=Date, y=Cases,color=Country)) +
+  geom_line() 
+
+ggplot(covid3,aes(x=Date, y=Cases,color=Country)) +
+  geom_line() + 
+  facet_grid(~ Country) # 依國家分區塊作圖
+```
+
+#### 2.抓出2021-09-24的資料，建一個新變數Confirmed.rate = new_cases/population，根據Confirmed.rate排序（cases最多的rank=1）。
+```{r}
+covid %>% 
+  filter(date =="2021-09-24") %>% 
+  mutate(Confirmed.rate = new_cases/population ) %>% 
+  mutate(ranking = dense_rank(desc(Confirmed.rate))) %>% #  確診數由大排到小，使用dense_rank()排序
+  select(Confirmed.rate,ranking,location,total_cases,date) %>% 
+  head()
+```
+
+
+#### 3.計算每個國家總患病人數，跟total_cases比較。
+```{r}
+covid %>% group_by(location) %>% tally() %>% head() # 算每個國家出現幾次，並不是cases
+
+# grouping doesn't change how the data looks
+# It changes how it acts with the other dplyr verbs.
+covid %>% group_by(location) %>% 
+  summarise(confirmed=sum(new_cases)) %>% 
+  arrange( desc(confirmed) ) %>%  # 遞減排序
+  head()
+
+# check: covid %>% filter(date=="2021-09-24" & location=="Brazil") %>% select(total_cases)
+```
+
+
+#### 4.建立一個新資料
+```{r}
+df <- covid %>%  
+  filter(continent == "Asia" & date == "2021-09-24") %>% 
+  select(location,new_cases) %>% 
+  drop_na() %>% 
+  group_by(location) %>%  # 只有9/24，表示每個地區只有一筆資料，可以不需要依照地區分群
+  summarise(Confirmed=sum(new_cases)) %>% 
+  mutate(rank = dense_rank(desc(Confirmed)),
+         per = (100*Confirmed/sum(Confirmed)) %>% round(1),
+         txt = paste0(location, ': ', Confirmed, ' (', per, '%)') # 資料顯示的形式
+         ) 
+
+df %>%  filter(rank<=10) %>% 
+  ggplot(aes(fill=location)) +
+  geom_bar(aes(x='', y=per), stat='identity') +
+  coord_polar("y", start=0) +   # 圓餅圖
+  xlab('') + ylab('Percentage (%)') +  
+  labs(title=paste0('Top 10 Asia Country with Most Confirmed Cases')) +
+  scale_fill_discrete(name='Country', labels=df$txt)
+```
+
+
+### Exercise 2 
+
+```{r}
+# creat a data set
+df <-  tibble(sub = c(1,2,3), treat = c("A","B","C"),
+            t_1 = c(0.1,0.2,0.3), t_2 = c(4,5,6),
+            t_3 = c(7,8,9), t_4 = c(1,1,1), t_5 = c(1.3,2.3,3.3)
+)
+```
+
+#### 1
+```{r}
+df2 <-  df %>% 
+  gather(t,v,t_1:t_5) %>% 
+  arrange(sub,treat)  # 根據sub,treat排序 
+```
+
+#### 2
+```{r}
+# 拆解t行並用v的值帶入
+df2 %>% spread(t,v) 
+```
+
+#### 3
+```{r}
+# 將t行依照特定形式拆成獨立的兩行
+df3 <-  df2 %>% separate(t, into=c("tt","number"), sep="_") 
+```
+
+#### 4
+```{r}
+# 將兩行tt,number合併為一行，並令為t
+df3 %>% unite(t,tt,number)
+```
+
+#### 5
+```{r}
+# 將兩行tt,number合併為一行，並令為time，設定無間隔
+df3 %>% unite(time, tt, number, sep= "" ) 
+
+```
+
+

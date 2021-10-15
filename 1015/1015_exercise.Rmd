@@ -1,0 +1,256 @@
+---
+title: "1015_exercise"
+author: "Chang"
+date: "2021/10/15"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+### exercise 0
+Calculate BMI
+```{r}
+f <- function(w, h){
+  BMI <- round(w/(h/100)^2, 2)
+  print(
+    paste(w, "(weight)/", round(h/100, 2), "^2 (square meter of height)=", BMI, sep = "")
+  )
+}
+w <- sample(40:200, 1)
+h <- sample(110:190, 1)
+f(w, h)
+```
+
+
+### exercise 1 
+寫一個程式，資料輸入後，會計算數列x的個數，平均及標準差。
+```{r}
+g <- function(x){
+  seq_num <- length(x)
+  mean <- round(mean(x), 2)
+  sd <- round(sd(x), 2)
+  return(list(seq_num, mean, sd))
+}
+length <- sample(1:50, 1)
+x <- sample(1:100, length)
+g(x)
+```
+
+### exercise 2
+Write a funtion for Two sample t-test assuming that unknown population variances are equal. Return means, pooled variance, and t test statistic.
+```{r}
+ttest <- function(var1, var2){
+  n1 <- length(var1)
+  n2 <- length(var2)
+  v1 <- var(var1)
+  v2 <- var(var2)
+  m1 <- mean(var1)
+  m2 <- mean(var2)
+  sp <- ((n1 - 1)*v1 + (n2 - 1)*v2)/(n1 + n2 - 2)
+  t <- (m1 - m2)/sqrt(sp*(1/n1 + 1/n2))
+  return(
+       c(mean = c(m1,m2), 
+         pooled.var = sp, 
+         t.stat = t,
+         # pt:probability test
+         pvalue = 2*pt(-abs(t),df=n1+n2-2))
+    )
+}
+var1 <- rnorm(10,3,1)
+var2 <- rnorm(10,0,1)
+ttest(var1, var2)
+t.test(var1, var2, var.equal = T)
+```
+
+### exercise 3
+請試寫R程式:抽撲克牌，算出的機率是否符合理論。
+Draw a five-card poker hand from a standard deck of 52 cards, which contains 13 hearts(h), 13 diamonds(d), 13 clubs(c), and 13 spades(s). What is the probability that you get the same number of hearts as diamonds?
+```{r}
+# 五張牌要有相同數量的紅心和菱形牌，可能的情形有三種，各零、一、二張
+# theoretical computation
+numerator <- choose(26, 5) + choose(13, 1)*choose(13, 1)*choose(26, 3) + choose(13, 2)*choose(13, 2)*choose(26, 1)
+denominator <- choose(52, 5)
+numerator/denominator
+```
+
+```{r}
+# one time
+deck <- c(rep("h", 13), rep("d", 13), rep("c", 13), rep("s", 13))
+result <- sample(deck, 5)
+hearts <- sum(result == "h")
+diamonds <- sum(result == "d")
+success <- diamonds == hearts
+data.frame(t(result), diamonds, hearts, success)
+
+# several times
+one <- function(){
+  deck <- c(rep("h", 13), rep("d", 13), rep("c", 13), rep("s", 13))
+result <- sample(deck, 5)
+hearts <- sum(result == "h")
+diamonds <- sum(result == "d")
+success <- diamonds == hearts
+data.frame(t(result), diamonds, hearts, success)
+}
+
+many <- function(NNN) {
+  replicate(NNN, one()$success)
+}
+
+# calculate the probability
+table(many(1000))
+res <- as.data.frame(many(1000))
+sum(res)/1000
+```
+
+```{r}
+#check results(show the details of 10 experiments to make sure one is behaving correctly.)
+do.call(rbind, lapply(1:10, function(nnn) {
+  one()
+})) ##do.call(fun,data)
+
+
+
+```
+
+
+### exercise 4
+將年齡資料轉換為年齡群組1~20, 21~40, 41~60, 61歲以上，並編碼為A, B, C, D 。
+```{r}
+age <- sample(1:100, 20)
+code <- ifelse(age >= 1 & age <= 20, "A", 
+       ifelse(age >= 21 & age <= 40, "B",
+              ifelse(age >= 41 & age <= 60, "C","D")))
+head(cbind(age, code))
+```
+
+### exercise 5
+計算n!
+```{r}
+# method1: using function()
+f <- function(n){
+  prod(seq(1,n))
+}
+n <- sample(1:10, 1)
+cat(n,"! = ", f(n),"")
+
+# method2: using function() and for loop
+k <- 1
+prodfcn <- function(n){
+  for(i in 1:n){
+  k <- k*i
+  }
+  return(k)
+}
+n <- sample(1:10, 1)
+cat(n,"! = ", prodfcn(n),"")
+
+# method3-1: using while
+n <- sample(1:10, 1)
+i <- 1
+k <- 1
+while(i <= n){
+  k <- k*i
+  i <- i + 1
+}
+cat(n,"! = ", k, "")
+
+# method3-2: using while
+f.while <- function(n){
+  f <- 1
+  t <- n
+  while(t > 1){
+    f <- f*t
+    t <- t-1
+  }
+  return(f)
+}
+n <- sample(1:10, 1)
+cat(n,"! = ", f.while(n),"")
+
+# method4-1: using repeat
+n <- sample(1:10, 1)
+i <- 1
+k <- 1
+repeat{
+  
+  if (i > n) break
+  k <- k*i
+  i <- i + 1
+}
+cat(n,"! = ", k, "")
+
+# method4-2: using repeat
+f.repeat <- function(n){
+  f <- 1
+  t <- n
+  repeat{
+    if(t < 2) break
+    f <- f*t
+    t <- t-1
+  }
+  return(f)
+}
+n <- sample(1:10, 1)
+cat(n,"! = ", f.repeat(n),"")
+
+```
+
+### exercise 6
+投擲一枚公正的銅板，想知道總共需要投擲幾次才會出現三個正面。
+```{r}
+result <- c()
+coin <- c(0,1)
+i <- 1
+while(sum(result) < 3){
+  result[i] <- sample(coin, 1)
+  i <- i + 1
+}
+length(result)
+result
+```
+### exercise 7
+計算Iris dataset data(iris) 的歐式距離(Euclidean Norm)。
+
+```{r}
+# R內建的距離函數
+# dist(data, diag = T, upper=T)
+
+n <- nrow(iris)
+D <- matrix(0,n,n) #create a matrix to save the results
+data <-iris[,-5]
+
+for( i in 1:n){
+  for(j in 1:n){
+  D[i,j]<- sqrt(sum((data[i,]-data[j,])^2))
+  }
+}
+D[3,3]
+D[1,5]
+
+```
+
+
+### exercise 8
+用R for loop 計算矩陣乘法
+```{r}
+A <- matrix(sample(1:5, 12, replace = T), 3, 4)
+B <- matrix(sample(1:5, 12, replace = T), 4, 3)
+C <-  matrix(0 , dim(A)[1] , dim(B)[2] , TRUE )
+mat_mult <- function(A, B){
+  for( i in 1:3){
+    for( j in 1:3){
+      C[i,j] <- sum(A[i,]*B[,j])
+    }
+
+  }
+  return(C)
+}
+mat_mult(A, B)
+
+
+# check
+identical(A %*% B, mat_mult(A, B))
+```
+
+
+

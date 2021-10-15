@@ -1,0 +1,326 @@
+---
+title: "1015 R_function"
+author: "Chang"
+date: "2021/10/15"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+### function
+```{r}
+df <- data.frame(
+  # Generate 10 standard normal random numbers
+  a <- rnorm(10),
+  b <-  rnorm(10),
+  c <-  rnorm(10),
+  d <-  rnorm(10)
+)
+
+# basic method:
+fcn <- function(x){
+  (x - min(x))/(max(x) - min(x))
+}
+fcn(df$a)
+
+# another method: use range()
+# output of range: range[1] is min; range[2] is max
+fcn1 <- function(x){
+  minmax <- range(x, na.rm = T)
+  ans <- (x - minmax[1])/(minmax[2] - minmax[1])
+  return(ans)
+}
+fcn1(df$a)
+```
+
+### operator
+```{r}
+set.seed(1)
+x <- runif(10, -1, 1)
+
+# &：每一個值個別比較
+0 <= x & x <= 0.5
+
+# &&：只檢查第一個值
+0 <= x && x <= 0.5 
+
+# |：每一個值個別比較
+0.4 >= x | x <= -0.2
+
+# ||：只檢查第一個值
+0.4 >= x || x <= -0.2
+
+#滿足條件的換成NA
+x[0 <= x & x <= 0.5] <- NA
+x
+```
+
+### if_else
+
+    Command:
+
+    1.  if ('條件一'){
+         "結果一"
+        } else if ('條件二'){
+         "結果二"
+        } else{
+         "結果三"
+        }
+
+    2.  ifelse(條件, "結果一", "結果二")
+
+    3.  if ('條件') print("結果")
+
+```{r}
+# method 1:
+f <- function(w, h){
+  BMI <- round(w/(h/100)^2, 2)
+  print(
+    paste(w, "(weight)/", round(h/100, 2), "^2 (square meter of height)=", BMI, sep = "")
+  )
+  if (BMI < 18.5){
+    print("underweight")
+  } else if (BMI >= 18.5 & BMI < 24){
+    print("normal")
+  } else{
+    print("overweight")
+  }
+}
+w <- sample(40:200, 1)
+h <- sample(110:190, 1)
+f(w, h)
+
+# method 2:
+f0 <- function(w, h){
+  BMI <- round(w/(h/100)^2, 2)
+  print(
+    paste(w, "(weight)/", round(h/100, 2), "^2 (square meter of height)=", BMI, sep = "")
+  )
+  ifelse(BMI < 18.5, "underweight", 
+         ifelse(BMI >= 18.5 & BMI < 24, "normal", "overweight"))
+}
+f0(w, h)
+```
+
+### switch
+可以同時輸入許多獨立的工作項目，再從中指定要執行哪一項。
+```{r}
+schedule <- function(x){
+  switch (x,
+  morning = "reading",
+  noon = "nap",
+  afternoon = "writing",
+  night = "sleep")
+}
+schedule("noon")
+```
+
+### loops
+
+    \t :空白格
+    
+    \n :換行
+    
+    \r :到下一行最開始處(少用)
+    
+#### for 
+```{r}
+# 從1加到100
+result <- 0
+for(i in 1:100){
+  result <- result + i
+}
+result
+
+# 九九乘法表
+for (i in 1:9){
+  for (j in 1:9){
+    prod <- i*j
+    cat(i,"x",j,"=",prod , "\t")
+  }
+  cat("\n")
+}
+
+```
+
+#### while
+符合條件會執行動作，直到條件不滿足為止。which()括號內放邏輯判斷句。
+```{r}
+# 從1加到100
+i <- 1
+result <- 0
+while(i < 101){
+  result <- result + i
+  i <- i + 1
+}
+result
+
+
+# 九九乘法表
+i <-  1
+while(i < 10){
+  j <-  1
+  while(j < 10){
+    prod <- i*j
+    cat(i,"x",j,"=",prod ,"\t")
+    j <-  j + 1
+  }
+  cat("\n")
+  i <-  i + 1
+}
+```
+
+#### repeat and break
+if (條件) break: 達到條件時，跳出迴圈。
+
+```{r}
+# 從1加到100
+i <- 1
+result <- 0
+repeat{
+  result <- result + i
+  i <- i + 1
+  
+  # repeat 的條件可以寫在大括弧中的任何地方
+  if (i > 100) break
+  
+}
+result
+
+# 九九乘法表
+i <- 1
+repeat{
+  j <- 1
+  repeat{
+    
+    if (j > 9) break
+    
+    prod <- i*j
+    cat(i,"x",j,"=",prod ,"\t")
+    j <-  j + 1
+  }
+  i <-  i + 1
+  if (i > 9) break
+  cat("\n")
+}
+
+```
+
+#### next
+
+* The next iteration of the loop is then executed.
+    
+* if (條件) next: 達到條件即時，跳過不執行該條件下的工作。
+```{r}
+for(i in c(1:6)){
+  
+  if(i == 3) next  #當i等於3的時候，省略此次迴圈(skip)的動作，從下一個i=4開始
+  
+  print(i)  
+}
+```
+### apply 家族函數
+https://chang-web.github.io/R-selflearning/R%20intermediate/R_intermediate.html#4
+
+**apply(array, margin, ...)**
+```{r}
+mat <- array(1:20, c(4, 5)) 
+mat
+
+# count mean in columns: use apply()
+apply(mat, 2, mean)
+
+# count mean in columns: use for loop
+X <- c()
+for(i in 1:5){
+  X[i] <- mean(mat[ ,i])
+}
+X
+
+# count mean in columns: use function and sapply
+M <- function(i){
+  Mean <- mean(mat[ ,i])
+  return(Mean)
+}
+sapply(1:5, M)
+
+# use apply to count margin in rows
+apply(mat, 1, sum)
+
+# 找出每一行被3整除的數字
+# 簡化版: apply(mat, 2,function(x) x[x %% 3 == 0])
+apply(mat, 1, 
+      function(x){
+        x[x %% 3 == 0]
+      }
+)
+```
+
+```{r}
+fcn <- function(x){ 
+     return(sqrt(x)*10)  
+ }
+ 
+# 對每行元素逐一計算，依序擺入行中
+apply(mat, 2, fcn)
+
+# 對每行元素逐一計算，依序擺入行中(相當於前者轉置)
+apply(mat, 1, fcn)
+
+```
+**lapply(list, function)**
+
+* returns a list of the same length as X, each element of which is the result of applying FUN to the corresponding element of X.
+
+**sapply(list, function)**
+
+* sapply is a user-friendly version and wrapper of lapply by default returning a vector, matrix or an array if appropriate.
+
+**vapply(list, function, FUN.VALUE = type, ...)**
+
+* vapply is similar to sapply, but has a pre-specified type of return value, so it can be safer (and sometimes faster) to use.
+
+* sapply(*, simplify = FALSE, USE.NAMES = FALSE) is equivalent to lapply(*) 
+
+**tapply(vector, index, function)**
+INDEX:The elements are coerced to factors by as.factor.
+```{r}
+library(tidyverse)
+library(utils)
+salesdata <- read.csv(file = 'D:/Chang-web/salesdata.csv')
+# object:依照Product和Store分類，填入總消費平均。
+res <- salesdata %>% 
+  mutate(totalspend = Quantity*UnitPrice) %>%
+  select(Product, Store, totalspend) 
+
+# use tapply
+product <- as.factor(res$Product)
+store <- as.factor(res$Store)
+spend <- as.numeric(res$totalspend)
+object <- as.data.frame(
+  round(tapply(spend, list(store, product), mean), 2)
+)
+object
+```
+
+```{r}
+# review: use tidyverse
+res %>% 
+  group_by(Product, Store) %>% 
+  summarise(spend = round(mean(totalspend), 2)) %>% 
+  spread(Product, spend)
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+

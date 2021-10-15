@@ -11,7 +11,9 @@
   * [exercise](https://chang-web.github.io/Fri234_business-analysis-in-R/1001/in_class_exercise.html)
 ### W4 1008
   * EDA
-
+### W5 1015
+  * [in_class](https://chang-web.github.io/Fri234_business-analysis-in-R/1015/1015-R_function)
+  * [exercise](https://chang-web.github.io/Fri234_business-analysis-in-R/1015/1015_exercise)
 
 
 ## Online Sources
